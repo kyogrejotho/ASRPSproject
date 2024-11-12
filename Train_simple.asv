@@ -1,0 +1,18 @@
+prompt = {'Enter matrix size:','Enter colormap name:'};
+dlgtitle = 'Input';
+fieldsize = [1 45; 1 45];
+definput = {'20','hsv'};
+answer = inputdlg(prompt,dlgtitle,fieldsize,definput)
+
+function [Pcat,Icat] = Train_simple(Pref,eff, Vcat)
+%UNTITLED2 Summary of this function goes here
+%   Detailed explanation goes here
+threshold = 570;
+if Vcat < threshold
+    Pcat = 0;
+else
+    Pcat = Pref/eff; 
+Icat = Pcat/Vcat; 
+
+end
+
