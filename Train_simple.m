@@ -4,33 +4,33 @@ eff = 0.9;
 %Pref = '755'; % in kW
 %Vcat = '390'; % in V
 %withOCP = false; 
-prompt = {'Enter reference power in kW:','Enter catenary voltage in V:', 'Consider Overcurrent Protection? Y/N'};
-dlgtitle = 'Train Parameters';
-fieldsize = [1 45; 1 45;1 45];
-definput = {'755','390','N'};
-vpAns = inputdlg(prompt,dlgtitle,fieldsize,definput);
-strPref = vpAns{1}; % can get rid of this, refer to ans array in fxn calls
-strVcat = vpAns{2};
-strOCP = vpAns{3};
-
-if checkNum(strPref)
-    Pref = str2double(strPref);
-end
-
-if checkNum(strVcat)
-    Vcat = str2double(strVcat);
-end
-
-if checkOCP(strOCP)
-    prompt = {'Enter minimum voltage in V','Enter maximum voltage in V:'};
-    dlgtitle = 'Set Voltage Limits';
-    fieldsize = [1 45; 1 45];
-    definput = {'550','600'};
-    vMinMaxAns = inputdlg(prompt,dlgtitle,fieldsize,definput);
-    
-    Train_protection(Pref,eff,Vcat)
-    
-end
+% prompt = {'Enter reference power in kW:','Enter catenary voltage in V:', 'Consider Overcurrent Protection? Y/N'};
+% dlgtitle = 'Train Parameters';
+% fieldsize = [1 45; 1 45;1 45];
+% definput = {'755','390','N'};
+% vpAns = inputdlg(prompt,dlgtitle,fieldsize,definput);
+% strPref = vpAns{1}; % can get rid of this, refer to ans array in fxn calls
+% strVcat = vpAns{2};
+% strOCP = vpAns{3};
+% 
+% if checkNum(strPref)
+%     Pref = str2double(strPref);
+% end
+% 
+% if checkNum(strVcat)
+%     Vcat = str2double(strVcat);
+% end
+% 
+% if checkOCP(strOCP)
+%     prompt = {'Enter minimum voltage in V','Enter maximum voltage in V:'};
+%     dlgtitle = 'Set Voltage Limits';
+%     fieldsize = [1 45; 1 45];
+%     definput = {'550','600'};
+%     vMinMaxAns = inputdlg(prompt,dlgtitle,fieldsize,definput);
+% 
+%     Train_protection(Pref,eff,Vcat)
+% 
+% end
 
 eff = 0.9; % 0 - 1
 %ex1 = Train_simple_fxn (500,eff,700)
