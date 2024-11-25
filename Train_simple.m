@@ -1,6 +1,17 @@
 clc;
 clear;
 eff = 0.9;
+arr_labels = ['Pref','Vcat', 'Pcat', 'Prhe', 'Pnosupp']; % NOT USED NOW
+arr_Pref = [350; -350; 0; 350; 350; 350; 350; -350; -350; -350; -350];
+arr_Vcat = [650; 800; 700; 600; 550; 575; 500; 850; 900; 870; 950];
+arr_Pcat = ones(11,1);
+arr_Prhe = ones(11,1);
+arr_Pnosupp = ones(11,1);
+
+arr_SoC = [0; 0.03; 0.05; 0.07; 0.10; 0.50; 0.9; 0.93; 0.95; 0.97; 1];
+arr_SoC_new = ones(11,1); % store updated SoC
+arr_Pacc = ones(11,1);
+arr_Ptrain = ones(11,1);
 %Pref = '755'; % in kW
 %Vcat = '390'; % in V
 %withOCP = false; 
@@ -33,58 +44,114 @@ eff = 0.9;
 % end
 
 eff = 0.9; % 0 - 1
-%ex1 = Train_simple_fxn (500,eff,700)
-% [Psupp1,Pnosupp1] = Train_protection(650,eff,650)
-% [Psupp2,Pnosupp2] = Train_protection(650,eff,575)
-% [Psupp3,Pnosupp3] = Train_protection(650,eff,560)
-% [Psupp4,Pnosupp4] = Train_protection(650,eff,400)
-% [Psupp5,Pnosupp5] = Train_protection(650,eff,550)
-% [Psupp6,Pnosupp6] = Train_protection(650,eff,600)
-% [Psupp7,Pnosupp7] = Train_protection(-650,eff,600)
+% [Pcat1,Pnosupp1] = Train_protection(650,eff,650)
+% [Pcat2,Pnosupp2] = Train_protection(650,eff,575)
+% [Pcat3,Pnosupp3] = Train_protection(650,eff,560)
+% [Pcat4,Pnosupp4] = Train_protection(650,eff,400)
+% [Pcat5,Pnosupp5] = Train_protection(650,eff,550)
+% [Pcat6,Pnosupp6] = Train_protection(650,eff,600)
+% [Pcat7,Pnosupp7] = Train_protection(-650,eff,600)
+
+% [Pcat01,Pnosupp01,Prhe01] = Train_protection(350,eff,650)
+% [Pcat02,Pnosupp02,Prhe02] = Train_protection(-350,eff,800)
+% [Pcat03,Pnosupp03,Prhe03] = Train_protection(0,eff,700)
+% [Pcat04,Pnosupp04,Prhe04] = Train_protection(350,eff,600)
+% [Pcat05,Pnosupp05,Prhe05] = Train_protection(350,eff,550)
+% [Pcat06,Pnosupp06,Prhe06] = Train_protection(350,eff,575)
+% [Pcat07,Pnosupp07,Prhe07] = Train_protection(350,eff,500)
+% [Pcat08,Pnosupp08,Prhe08] = Train_protection(350,eff,850)
+% [Pcat09,Pnosupp09,Prhe09] = Train_protection(-350,eff,900)
+% [Pcat10,Pnosupp10,Prhe10] = Train_protection(-350,eff,870)
+% [Pcat11,Pnosupp11,Prhe11] = Train_protection(-350,eff,950)
+
+% [Pcat1,Pnosupp1] = Train_protection(350,eff,650)
+% [Pcat2,Pnosupp2] = Train_protection(-350,eff,800)
+% [Pcat3,Pnosupp3] = Train_protection(0,eff,700)
+% [Pcat4,Pnosupp4] = Train_protection(350,eff,600)
+% [Pcat5,Pnosupp5] = Train_protection(350,eff,550)
+% [Pcat6,Pnosupp6] = Train_protection(350,eff,575)
+% [Pcat7,Pnosupp7] = Train_protection(350,eff,500)
+
+% For results of Train_protection function
+% for i = 1:length(arr_Pref)
+%     [iter_Pcat,iter_Pnosupp,iter_Prhe] = Train_protection(arr_Pref(i),eff,arr_Vcat(i));
+%     arr_Pcat(i) = iter_Pcat;
+%     arr_Pnosupp(i) = iter_Pnosupp;
+%     arr_Prhe(i) = iter_Prhe;
+% end
+% results = table(arr_Pref, arr_Vcat, arr_Pcat, arr_Prhe, arr_Pnosupp);
+
+[Pcat1,Pnosupp,Prhe,Pacc,Ptrain] = Train_batt(694.8,0.9,570,0.5); % Testing only
+% Results of Train_batt
+% for i = 1:length(arr_Pref)
+%     [iter_Pcat,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_Ptrain] = Train_batt(arr_Pref(i),eff,arr_Vcat(i),arr_SoC(i)); % add new SoC
+%     arr_Pcat(i) = iter_Pcat;
+%     arr_Pnosupp(i) = iter_Pnosupp;
+%     arr_Prhe(i) = iter_Prhe;
+%     arr_Pacc(i) = iter_Pacc;
+%     arr_Ptrain(i) = iter_Ptrain;
+% end
+% results = table(arr_Pref, arr_Vcat,arr_SoC, arr_Pcat, arr_Prhe, arr_Pnosupp, arr_Pacc, arr_Ptrain);
 
 function [Pcat] = Train_simple_fxn(Pref,eff, Vcat)
-%   Detailed explanation goes here
-% threshold = 570;
-% if Vcat < threshold
-%     Pcat = 0;
-% else
     Pcat = Pref/eff
     Icat = Pcat/Vcat
-%end
 end
 
-function [Psupp,Pnosupp] =  Train_protection(Pref,eff,Vcat)
+function [Pcat,Pnosupp,Prhe] =  Train_protection(Pref,eff,Vcat)
 
     v1 = 550; % hardcoded for now
     v2 = 600;
+    v3 = 850;
+    v4 = 900;
+    
+    k = getKp(Pref, Vcat, v1,v2,v3,v4);
 
-    Pcat = Pref/eff;
-    if Vcat > v2 % limit Psupply to Pcatenary
-        Psupp = Pcat;
-        Pnosupp = Pref-(Psupp*eff); % usual computation;
-    elseif Vcat < v1 % if larger, limit Psupply to 0
-         Psupp = 0;
-         Pnosupp = Pref-(Psupp*eff);
-    elseif Pcat < 0 % if negative, we are in traction and we have no supply power, Psupp = Pref*eff
-        Psupp = Pref*eff;
-        Pnosupp = 0;
-    else
-        Psupp = (Pcat/(v2-v1))*(Vcat-v1);
-        Pnosupp = Pref-(Psupp*eff);
+    if Pref >= 0
+        Pcat = k*Pref/eff; % k is the slope of the OCP line
+        Pnosupp = Pref-(Pcat*eff);
+        Prhe = 0; % no Prhe if OCP
+    elseif Pref < 0 
+        Pcat = k*Pref*eff;
+        Prhe = (Pref*eff) - Pcat;
+        Pnosupp = 0; % no Pnosupp if OCV
     end
 end
 
-function withOCP = checkOCP(strOCP)
-    if strlength(strOCP) > 1
-        withOCP = 0;
-        uiwait(warndlg('Input too long!'));
-    elseif strcmpi('y',strOCP)
-        withOCP = 1;
-    elseif strcmpi('n',strOCP)
-        withOCP = 1
-    else
-        withOCP = 0;
-        uiwait(warnndlg('Invalid input! Please input only Y or N'));
+function [Pcat, Pnosupp, Prhe, Pacc, Ptrain] = Train_batt(Pref, eff, Vcat,SoC)
+% So far only considered SoC = 50%
+    SoC1 = 0.05;
+    SoC2 = 0.1;
+    SoC3 = 0.9; % For Pablo's case, use 0.95
+    SoC4 = 0.95; % For Pablo's case, use 1.00
+
+    v1 = 550; % hardcoded for now
+    v2 = 600;
+    v3 = 850;
+    v4 = 900;
+    
+    Pmax = 300; % [kW]
+    Emax = 20; % [kWh]
+    eff_b = 0.9; % battery efficiency, same as for caternary?
+
+    k = getKp(Pref, Vcat, v1,v2,v3,v4)
+    k_soc = getKc(Pref, SoC, SoC1, SoC2, SoC3, SoC4);
+    % Here, Ptrain is the "potential" Pcat
+    if Pref >= 0 % Traction
+        Ptrain = k*Pref/eff % k is the slope of the OCP line, was Pcat in protection case
+        Pacc_available = k_soc*Pmax*eff_b %Pmax only equal to Pacc_available if SoC2 < soc 
+        Pacc = min(Pacc_available,Ptrain)
+        %Pnosupp = Pref-(Ptrain*eff)
+        Pnosupp = Pref-(Ptrain*eff)
+        Pcat = Ptrain-Pacc
+        Prhe = 0; % no Prhe if traction
+    elseif Pref < 0 % Braking
+        Ptrain = k*Pref*eff;
+        Pacc_available = k_soc*Pmax/eff_b; %Pmax only equal to Pacc_available if soc < SoC3
+        Pacc = min(Pacc_available, Ptrain);
+        Pcat = min(Ptrain-Pacc, Ptrain); % Ptrain was originally Pcat in slides, seems wrong
+        Prhe = (Ptrain-Pacc) - Pcat;
+        Pnosupp = 0; % no Pnosupp if OCV
     end
 end
 
@@ -96,4 +163,22 @@ function isNum = checkNum(numInput)
     else
         isNum = 1;
     end
+end
+
+function k = getKp(Pref,Vcat,ocpMin, ocpMax, ovpMin, ovpMax)
+    if Pref >= 0 % OCP only happens during positive power/taking power from catenary
+        k = (Vcat-ocpMin)/(ocpMax-ocpMin);
+    elseif Pref < 0 % OVP only happens during negative power/injecting power to catenary
+        k = (ovpMax-Vcat)/(ovpMax-ovpMin);
+    end
+    k = clip(k,0,1); % limit this like a sat block
+end
+
+function k_soc = getKc (Pref, soc, dchrg_socMin, dchrg_socMax, chrg_socMin,chrg_socMax)
+    if Pref >=0 % Battery will discharge, train is in traction mode
+        k_soc = (soc-dchrg_socMin)/(dchrg_socMax-dchrg_socMin);
+    elseif Pref < 0 % Charge the accumulator/battery only when train is braking
+        k_soc = (chrg_socMax-soc)/(chrg_socMax-chrg_socMin);
+    end
+    k_soc = clip(k_soc,0,1);
 end
