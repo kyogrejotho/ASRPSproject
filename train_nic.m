@@ -17,6 +17,7 @@ for j = 1:length(arr_SOC_init)
         arr_Pacc(i,j) = iter_Pacc;
         arr_SOC_final(i,j) = iter_SOC_final;
     end
+    % output test case, one initial SOC per table
     result = table(arr_Pref, arr_Vcat, arr_SOC_init(j)*ones(length(arr_Pref),1), arr_Pcat(:,j), arr_Pnosupp(:,j), arr_Prhe(:,j), arr_Pacc(:,j), arr_SOC_final(:,j));
     result.Properties.VariableNames = arr_labels
 end
