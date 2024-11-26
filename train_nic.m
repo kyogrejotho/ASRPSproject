@@ -5,25 +5,25 @@ test_case
 
 global Vcat dt;
 dt = 60;
-%{
+%
 test_case
 for j = 1:length(arr_SOC_init)
     for i = 1:length(arr_Pref)
         Vcat = arr_Vcat(i);
-        [iter_Pcat,~,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_SOC_final] = train004(arr_Pref(i),arr_SOC_init(j));
-        arr_Pcat(i,j) = iter_Pcat;
-        arr_Pnosupp(i,j) = iter_Pnosupp;
-        arr_Prhe(i,j) = iter_Prhe;
-        arr_Pacc(i,j) = iter_Pacc;
-        arr_SOC_final(i,j) = iter_SOC_final;
+        [iter_Pcat,~,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_SOC_final] = train004(arr_Pref(i)*1e3,arr_SOC_init(j));
+        arr_Pcat(i,j) = iter_Pcat*1e-3;
+        arr_Pnosupp(i,j) = iter_Pnosupp*1e-3;
+        arr_Prhe(i,j) = iter_Prhe*1e-3;
+        arr_Pacc(i,j) = iter_Pacc*1e-3;
+        arr_SOC_final(i,j) = iter_SOC_final*100;
     end
     % output test case, one initial SOC per table
-    result = table(arr_Pref, arr_Vcat, arr_SOC_init(j)*ones(length(arr_Pref),1), arr_Pcat(:,j), arr_Pnosupp(:,j), arr_Prhe(:,j), arr_Pacc(:,j), arr_SOC_final(:,j));
+    result = table(arr_Pref, arr_Vcat, arr_SOC_init(j)*ones(length(arr_Pref),1)*100, arr_Pcat(:,j), arr_Pnosupp(:,j), arr_Prhe(:,j), arr_Pacc(:,j), arr_SOC_final(:,j)*100);
     result.Properties.VariableNames = arr_labels
 end
 %}
-Vcat = 650;
-[iter_Pcat,~,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_SOC_final] = train004(350*1e3,0.075)
+%Vcat = 650;
+%[iter_Pcat,~,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_SOC_final] = train004(350*1e3,0.075)
 
 %{
 Pref = 350;
