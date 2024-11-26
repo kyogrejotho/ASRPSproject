@@ -1,17 +1,29 @@
 clc;
 clear;
 eff = 0.9;
-arr_labels = ["Pref","Vcat", "Pcat", "Prhe", "Pnosupp"]; % NOT USED NOW
-arr_Pref = [350; -350; 0; 350; 350; 350; 350; -350; -350; -350; -350];
-arr_Vcat = [650; 800; 700; 600; 550; 575; 500; 850; 900; 870; 950];
-arr_Pcat = ones(11,1);
-arr_Prhe = ones(11,1);
-arr_Pnosupp = ones(11,1);
+% arr_labels = ["Pref","Vcat", "Pcat", "Prhe", "Pnosupp"]; % NOT USED NOW
+% arr_Pref = [350; -350; 0; 350; 350; 350; 350; -350; -350; -350; -350];
+% arr_Vcat = [650; 800; 700; 600; 550; 575; 500; 850; 900; 870; 950];
+% arr_Pcat = ones(11,1);
+% arr_Prhe = ones(11,1);
+% arr_Pnosupp = ones(11,1);
+% 
+% arr_SoC = [0; 0.03; 0.05; 0.07; 0.10; 0.50; 0.9; 0.93; 0.95; 0.97; 1];
+% arr_SoCfinal = ones(11,1); % store updated SoC
+% arr_Pacc = ones(11,1);
+% arr_Ptrain = ones(11,1);
 
-arr_SoC = [0; 0.03; 0.05; 0.07; 0.10; 0.50; 0.9; 0.93; 0.95; 0.97; 1];
-arr_SoCfinal = ones(11,1); % store updated SoC
-arr_Pacc = ones(11,1);
-arr_Ptrain = ones(11,1);
+arr_labels = ["Pref", "Vcat", "SOCinit", "Pcat", "Pnosupp", "Prhe", "Pacc", "SOCfinal"]; % NOT USED NOW
+arr_Pref = [350; -350; 0; 350; 350; 350; 350; -350; -350; -350; -350; 200;-250];
+arr_Vcat = [650; 800; 700; 600; 550; 575; 500; 850; 900; 870; 950;800;700];
+arr_SOC_init = [0.025; 0.05; 0.075; 0.1; 0.5; 0.9; 0.925; 0.95; 0.975];
+
+arr_Pcat = ones(length(arr_Pref),length(arr_SOC_init));
+arr_Pnosupp = ones(length(arr_Pref),length(arr_SOC_init));
+arr_Prhe = ones(length(arr_Pref),length(arr_SOC_init));
+arr_Pacc = ones(length(arr_Pref),length(arr_SOC_init));
+arr_SOC_final = ones(length(arr_Pref),length(arr_SOC_init));
+
 %Pref = '755'; % in kW
 %Vcat = '390'; % in V
 %withOCP = false; 
@@ -73,29 +85,39 @@ eff = 0.9; % 0 - 1
 % [Pcat7,Pnosupp7] = Train_protection(350,eff,500)
 
 %For results of Train_protection function
-for i = 1:length(arr_Pref)
-    [iter_Pcat,iter_Pnosupp,iter_Prhe] = Train_protection(arr_Pref(i),eff,arr_Vcat(i));
-    arr_Pcat(i) = iter_Pcat;
-    arr_Pnosupp(i) = iter_Pnosupp;
-    arr_Prhe(i) = iter_Prhe;
-end
-results = table(arr_Pref, arr_Vcat, arr_Pcat, arr_Prhe, arr_Pnosupp);
-results.Properties.VariableNames = arr_labels;
-
-% [Pcat1,Pnosupp1,Prhe1,Pacc1,Ptrain1] = Train_batt(694.8,0.9,570,0.5); % Testing only, for discharging
-%[Pcat2,Pnosupp2,Prhe2,Pacc2,Ptrain2] = Train_batt(-650,0.9,870,0.5); % Testing only, for charging
-
-% Results of Train_batt
 % for i = 1:length(arr_Pref)
-%     [iter_Pcat,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_Ptrain,iter_SoCfinal] = Train_batt(arr_Pref(i),eff,arr_Vcat(i),arr_SoC(i)); % add new SoC
+%     [iter_Pcat,iter_Pnosupp,iter_Prhe] = Train_protection(arr_Pref(i),eff,arr_Vcat(i));
 %     arr_Pcat(i) = iter_Pcat;
 %     arr_Pnosupp(i) = iter_Pnosupp;
 %     arr_Prhe(i) = iter_Prhe;
-%     arr_Pacc(i) = iter_Pacc;
-%     arr_Ptrain(i) = iter_Ptrain;
-%     arr_SoC_final(i) = iter_SoCfinal;
 % end
-% results = table(arr_Pref, arr_Vcat,arr_SoC, arr_Pcat, arr_Prhe, arr_Pnosupp, arr_Pacc, arr_Ptrain, arr_SoC_final);
+% results = table(arr_Pref, arr_Vcat, arr_Pcat, arr_Prhe, arr_Pnosupp);
+% results.Properties.VariableNames = arr_labels;
+
+ %[Pcat1,Pnosupp1,Prhe1,Pacc1,Ptrain1] = Train_batt(694.8,0.9,570,0.5); % Testing only, for discharging
+%[Pcat2,Pnosupp2,Prhe2,Pacc2,Ptrain2] = Train_batt(-650,0.9,870,0.5); % Testing only, for charging
+ %[Pcat3,Pnosupp3,Prhe3,Pacc3,Ptrain3] = Train_batt(200,0.9,570,0.5); %
+ [Pcat4,Pnosupp4,Prhe4,Pacc4,Ptrain4] = Train_batt(650,0.9,570,0.5);
+% Testing only, for discharging
+% [Pcat3,Pnosupp3,Prhe3,Pacc3,Ptrain3] = Train_batt(-300,0.9,875,0.5); % Testing only, for charging
+% Results of Train_batt
+% for j = 1: length(arr_SOC_init)
+%     for i = 1:length(arr_Pref)
+%         [iter_Pcat,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_Ptrain,iter_SoCfinal] = Train_batt(arr_Pref(i),eff,arr_Vcat(i),arr_SOC_init(j)); % add new SoC
+%         arr_Pcat(i,j) = iter_Pcat;
+%         arr_Pnosupp(i,j) = iter_Pnosupp;
+%         arr_Prhe(i,j) = iter_Prhe;
+%         arr_Pacc(i,j) = iter_Pacc;
+%         arr_Ptrain(i,j) = iter_Ptrain;
+%         arr_SOC_final(i,j) = iter_SoCfinal;
+%         i;
+%         length(arr_Pref);
+%         j;
+%     end
+%         result = table(arr_Pref, arr_Vcat, arr_SOC_init(j)*ones(length(arr_Pref),1), arr_Pcat(:,j), arr_Pnosupp(:,j), arr_Prhe(:,j), arr_Pacc(:,j), arr_SOC_final(:,j));
+%         result.Properties.VariableNames = arr_labels
+% end
+
 
 function [Pcat] = Train_simple_fxn(Pref,eff, Vcat)
     Pcat = Pref/eff
@@ -134,31 +156,33 @@ function [Pcat, Pnosupp, Prhe, Pacc, Ptrain,SoCfinal] = Train_batt(Pref, eff, Vc
     v3 = 850;
     v4 = 900;
 
-    dt = 60;
+    dt = 1;
     
     Pmax = 300; % [kW]
     Emax = 20; % [kWh]
     eff_b = 0.9; % battery efficiency, same as for caternary?
 
-    k = getKp(Pref, Vcat, v1,v2,v3,v4)
+    k = getKp(Pref, Vcat, v1,v2,v3,v4);
     k_soc = getKc(Pref, SoC, SoC1, SoC2, SoC3, SoC4);
     % Here, Ptrain is the "potential" Pcat
     if Pref >= 0 % Traction
-        Ptrain = k*Pref/eff; % k is the slope of the OCP line, was Pcat in protection case
-        Pacc_available = k_soc*Pmax*eff_b; %Pmax only equal to Pacc_available if SoC2 < soc 
+        Ptrain = k*Pref/eff; % @ after converter
+        Pacc_available = k_soc*Pmax*eff_b %Pmax only equal to Pacc_available if SoC2 < soc 
+        %Pacc = min(Pacc_available,Pref/(eff*eff_b)); % used to be second arg Ptrain
         Pacc = min(Pacc_available,Ptrain);
         Pacc2 = min((Pref/eff^2)*k_soc,Pmax);
-        Pnosupp = Pref-(Ptrain*eff);
+        %Pcat = (Pref/eff - Pacc*eff_b)*k; % Pcat = Ptrain-Pacc before
         Pcat = Ptrain-Pacc;
+        Pnosupp = Pref - Pacc*(eff_b*eff) - Pcat*eff; % Pref-(Ptrain*eff)
         Prhe = 0; % no Prhe if traction
         SoCfinal = (Emax*SoC - Pacc2*dt)/Emax; % new soc calculation
     elseif Pref < 0 % Braking
-        Ptrain = k*Pref*eff
+        Ptrain = Pref*eff % no k yet since we have not hit cat yet
         Pacc_available = -1*k_soc*Pmax/eff_b %Pmax only equal to Pacc_available if soc < SoC3
         Pacc = max(Pacc_available, Ptrain) % these are negative values, the max value is smaller in magnitude
         Pacc2 = max((Pref*(eff^2))*k_soc,-Pmax);
-        Pcat = max((Pref*eff)-Pacc, Ptrain) % Ptrain was originally Pcat in slides, seems wrong
-        Prhe = (Pref*eff)-Pacc - Pcat
+        Pcat = max(Ptrain-Pacc, k*Ptrain) % Ptrain was originally Pcat in slides, seems wrong
+        Prhe = Ptrain -Pacc - Pcat
         Pnosupp = 0; % no Pnosupp if OCV
         SoCfinal = (Emax*SoC - Pacc2*dt)/Emax; % new soc calculations
     end
