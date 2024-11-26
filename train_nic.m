@@ -1,9 +1,28 @@
 clc; close all; clear all;
 
+%% Test Case
+test_case
 
 global Vcat dt;
-dt = 3600;
+dt = 60;
+%
+test_case
+for j = 1:length(arr_SOC_init)
+    for i = 1:length(arr_Pref)
+        Vcat = arr_Vcat(i);
+        [iter_Pcat,~,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_SOC_final] = train004(arr_Pref(i),arr_SOC_init(j));
+        arr_Pcat(i,j) = iter_Pcat;
+        arr_Pnosupp(i,j) = iter_Pnosupp;
+        arr_Prhe(i,j) = iter_Prhe;
+        arr_Pacc(i,j) = iter_Pacc;
+        arr_SOC_final(i,j) = iter_SOC_final;
+    end
+    result = table(arr_Pref, arr_Vcat, arr_SOC_init(j)*ones(length(arr_Pref),1), arr_Pcat(:,j), arr_Pnosupp(:,j), arr_Prhe(:,j), arr_Pacc(:,j), arr_SOC_final(:,j));
+    result.Properties.VariableNames = arr_labels
+end
+%}
 
+%{
 Pref = 350;
 Vcat = 650;
 soc = 0 * 1e-2;
@@ -11,6 +30,7 @@ soc = 0 * 1e-2;
 [Pcat,~,Pnosup,Prhe] = train003(Pref)
 % over current & over voltage /w accumulator
 [Pcat,~,Pnosup,Prhe,soc] = train004(Pref,soc)
+%}
 
 function [Pcat,Icat] = train001(Pref)
     % no control
@@ -57,7 +77,7 @@ function [Pcat,Icat,Pnosup,Prhe] = train003(Pref)
     end
 end
 
-function [Pcat,Icat,Pnosup,Prhe,soc] = train004(Pref,soc)
+function [Pcat,Icat,Pnosup,Prhe,Pacc2,soc] = train004(Pref,soc)
     % over current & over voltage /w accumulator
     global Vcat dt;
     eff = 0.9;
