@@ -81,7 +81,9 @@ eff = 0.9; % 0 - 1
 % end
 % results = table(arr_Pref, arr_Vcat, arr_Pcat, arr_Prhe, arr_Pnosupp);
 
-[Pcat1,Pnosupp,Prhe,Pacc,Ptrain] = Train_batt(694.8,0.9,570,0.5); % Testing only
+% [Pcat1,Pnosupp1,Prhe1,Pacc1,Ptrain1] = Train_batt(694.8,0.9,570,0.5); % Testing only, for discharging
+[Pcat2,Pnosupp2,Prhe2,Pacc2,Ptrain2] = Train_batt(-650,0.9,870,0.5); % Testing only, for charging
+
 % Results of Train_batt
 % for i = 1:length(arr_Pref)
 %     [iter_Pcat,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_Ptrain] = Train_batt(arr_Pref(i),eff,arr_Vcat(i),arr_SoC(i)); % add new SoC
@@ -138,19 +140,19 @@ function [Pcat, Pnosupp, Prhe, Pacc, Ptrain] = Train_batt(Pref, eff, Vcat,SoC)
     k_soc = getKc(Pref, SoC, SoC1, SoC2, SoC3, SoC4);
     % Here, Ptrain is the "potential" Pcat
     if Pref >= 0 % Traction
-        Ptrain = k*Pref/eff % k is the slope of the OCP line, was Pcat in protection case
-        Pacc_available = k_soc*Pmax*eff_b %Pmax only equal to Pacc_available if SoC2 < soc 
-        Pacc = min(Pacc_available,Ptrain)
+        Ptrain = k*Pref/eff; % k is the slope of the OCP line, was Pcat in protection case
+        Pacc_available = k_soc*Pmax*eff_b; %Pmax only equal to Pacc_available if SoC2 < soc 
+        Pacc = min(Pacc_available,Ptrain);
         %Pnosupp = Pref-(Ptrain*eff)
         Pnosupp = Pref-(Ptrain*eff)
-        Pcat = Ptrain-Pacc
+        Pcat = Ptrain-Pacc;
         Prhe = 0; % no Prhe if traction
     elseif Pref < 0 % Braking
-        Ptrain = k*Pref*eff;
-        Pacc_available = k_soc*Pmax/eff_b; %Pmax only equal to Pacc_available if soc < SoC3
-        Pacc = min(Pacc_available, Ptrain);
-        Pcat = min(Ptrain-Pacc, Ptrain); % Ptrain was originally Pcat in slides, seems wrong
-        Prhe = (Ptrain-Pacc) - Pcat;
+        Ptrain = k*Pref*eff
+        Pacc_available = -1*k_soc*Pmax/eff_b %Pmax only equal to Pacc_available if soc < SoC3
+        Pacc = max(Pacc_available, Ptrain) % these are negative values, the max value is smaller in magnitude
+        Pcat = max((Pref*eff)-Pacc, Ptrain) % Ptrain was originally Pcat in slides, seems wrong
+        Prhe = (Pref*eff)-Pacc - Pcat
         Pnosupp = 0; % no Pnosupp if OCV
     end
 end
