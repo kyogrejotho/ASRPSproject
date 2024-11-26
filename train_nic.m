@@ -5,7 +5,7 @@ test_case
 
 global Vcat dt;
 dt = 60;
-%
+%{
 test_case
 for j = 1:length(arr_SOC_init)
     for i = 1:length(arr_Pref)
@@ -22,6 +22,8 @@ for j = 1:length(arr_SOC_init)
     result.Properties.VariableNames = arr_labels
 end
 %}
+Vcat = 650;
+[iter_Pcat,~,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_SOC_final] = train004(350*1e3,0.075)
 
 %{
 Pref = 350;
@@ -86,7 +88,7 @@ function [Pcat,Icat,Pnosup,Prhe,Pacc2,soc] = train004(Pref,soc)
     Pmax = 300 * 1e3; % Wh max power from/to accumulator
     % traction & discharge
     if Pref >= 0
-        Pacc2 = min((Pref/(eff^2))*ksoc_discharge(soc),Pmax); % from batt, before converter
+        Pacc2 = min((Pref/(eff^2)),Pmax*ksoc_discharge(soc)) % from batt, before converter
         Pacc1 = Pacc2*eff; % after converter (@ Pcat node)
         Pcat = (Pref/eff - Pacc1)*kOC(); % the rest of ref power from catenary (@ Pcat node)
         Pnosup = Pref - (Pcat + Pacc1)*eff; % the rest of power is not supplied (@ Pref node)
@@ -96,7 +98,7 @@ function [Pcat,Icat,Pnosup,Prhe,Pacc2,soc] = train004(Pref,soc)
         soc = (Emax*soc - Pacc2*dt)/Emax; % new soc calculation
     % braking
     else
-        Pacc2 = max((Pref*(eff^2))*ksoc_charge(soc),-Pmax); % to batt, after converter
+        Pacc2 = max((Pref*(eff^2)),-Pmax*ksoc_charge(soc)); % to batt, after converter
         Pacc1 = Pacc2/eff; % before converter (@ Pcat node)
         Pcat = ((eff*Pref) - Pacc1)*kOV(); % the rest of ref power to catenary (@ Pcat node)
         Pnosup = 0;
