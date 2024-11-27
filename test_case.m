@@ -27,6 +27,7 @@ end
 %}
 
 %Results of Train_batt from Jes
+%{
 for i = 1:length(arr_Pref)
     [iter_Pcat,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_Ptrain,iter_SoCfinal] = Train_batt(arr_Pref(i),eff,arr_Vcat(i),arr_SOC_init(i)); % add new SoC
     arr_Pcat(i) = iter_Pcat;
@@ -37,3 +38,4 @@ for i = 1:length(arr_Pref)
     arr_SoC_final(i) = iter_SoCfinal;
 end
 results = table(arr_Pref, arr_Vcat,arr_SoC_init, arr_Pcat, arr_Prhe, arr_Pnosupp, arr_Pacc, arr_Ptrain, arr_SoC_final);
+%}
