@@ -209,11 +209,7 @@ function k = kcat(Pref) % over current & under voltage control
     else
         k = (V4_OV-Vcat)/(V4_OV-V3_OV); % under voltage
     end
-    if k > 1
-        k = 1;
-    elseif k < 0
-        k = 0;
-    end
+    clip(k,0,1);
 end
 
 function k = ksoc(soc,Pref) % accumulator discharging control
@@ -226,9 +222,5 @@ function k = ksoc(soc,Pref) % accumulator discharging control
     else
         k = (soc4_charge - soc)/(soc4_charge - soc3_charge); % charging
     end
-    if k > 1
-        k = 1;
-    elseif k < 0
-        k = 0;
-    end
+    clip(k,0,1);
 end
