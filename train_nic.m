@@ -157,11 +157,7 @@ function k = kOC() % over current control
     V1_OC = 550; % min catenary voltage, 0 Pcat (traction) below this
     V2_OC = 600; % start of over current control, linear scaling to V1_OC
     k = (Vcat-V1_OC)/(V2_OC-V1_OC);
-    if k > 1
-        k = 1;
-    elseif k < 0
-        k = 0;
-    end
+    clip(k,0,1);
 end
 
 function k = kOV() % over voltage control
@@ -169,33 +165,21 @@ function k = kOV() % over voltage control
     V3_OV = 850; % start of over voltage control, linear scaling to V4_OV
     V4_OV = 900; % max catenary voltage, 0 Pcat (braking) above this
     k = (V4_OV-Vcat)/(V4_OV-V3_OV);
-    if k > 1
-        k = 1;
-    elseif k < 0
-        k = 0;
-    end
+    clip(k,0,1);
 end
 
 function k = ksoc_discharge(soc) % accumulator discharging control
     soc1_discharge = 5 * 1e-2; % min accumulator soc, 0 Pacc (traction) below this
     soc2_discharge = 10 * 1e-2; % start of discharging control, linear scaling to soc1_discharge
     k = (soc-soc1_discharge)/(soc2_discharge-soc1_discharge);
-    if k > 1
-        k = 1;
-    elseif k < 0
-        k = 0;
-    end
+    clip(k,0,1);
 end
 
 function k = ksoc_charge(soc) % accumulator charging control
     soc3_charge = 90 * 1e-2; % start of over voltage control, linear scaling to soc4_charge
     soc4_charge = 95 * 1e-2; % max accumulator soc, 0 Pcat (braking) above this
     k = (soc4_charge-soc)/(soc4_charge-soc3_charge);
-    if k > 1
-        k = 1;
-    elseif k < 0
-        k = 0;
-    end
+    clip(k,0,1);
 end
 
 function k = kcat(Pref) % over current & under voltage control
@@ -209,11 +193,7 @@ function k = kcat(Pref) % over current & under voltage control
     else
         k = (V4_OV-Vcat)/(V4_OV-V3_OV); % under voltage
     end
-    if k > 1
-        k = 1;
-    elseif k < 0
-        k = 0;
-    end
+    clip(k,0,1);
 end
 
 function k = ksoc(soc,Pref) % accumulator discharging control
@@ -226,9 +206,5 @@ function k = ksoc(soc,Pref) % accumulator discharging control
     else
         k = (soc4_charge - soc)/(soc4_charge - soc3_charge); % charging
     end
-    if k > 1
-        k = 1;
-    elseif k < 0
-        k = 0;
-    end
+    clip(k,0,1);
 end
