@@ -95,9 +95,14 @@ eff = 0.9; % 0 - 1
 % results.Properties.VariableNames = arr_labels;
 
  %[Pcat1,Pnosupp1,Prhe1,Pacc1,Ptrain1] = Train_batt(694.8,0.9,570,0.5); % Testing only, for discharging
-%[Pcat2,Pnosupp2,Prhe2,Pacc2,Ptrain2] = Train_batt(-650,0.9,870,0.5); % Testing only, for charging
- %[Pcat3,Pnosupp3,Prhe3,Pacc3,Ptrain3] = Train_batt(200,0.9,570,0.5); %
- [Pcat4,Pnosupp4,Prhe4,Pacc4,Ptrain4] = Train_batt(650,0.9,570,0.5);
+% [Pcat2,Pnosupp2,Prhe2,Pacc2,Ptrain2] = Train_batt(-650,0.9,870,0.5); % Testing only, for charging
+% [Pcat3,Pnosupp3,Prhe3,Pacc3,Ptrain3] = Train_batt(200,0.9,575,0.5); % bug fix due to this
+ % [Pcat4,Pnosupp4,Prhe4,Pacc4,Ptrain4] = Train_batt(650,0.9,570,0.5);
+ % [Pcat4,Pnosupp4,Prhe4,Pacc4,Ptrain4] = Train_batt(300,0.9,575,0.5);
+ % [Pcat6,Pnosupp6,Prhe6,Pacc6,Ptrain6] = Train_batt(200,0.9,500,0.5);
+  % [Pcat7,Pnosupp7,Prhe7,Pacc7,Ptrain7] = Train_batt(350,0.9,650,0.04);
+  % [Pcat8,Pnosupp8,Prhe8,Pacc8,Ptrain8] = Train_batt(300,0.9,650,0.08);
+  % [Pcat9,Pnosupp9,Prhe9,Pacc9,Ptrain9] = Train_batt(200,0.9,850,0.5);
 % Testing only, for discharging
 % [Pcat3,Pnosupp3,Prhe3,Pacc3,Ptrain3] = Train_batt(-300,0.9,875,0.5); % Testing only, for charging
 % Results of Train_batt
@@ -162,18 +167,19 @@ function [Pcat, Pnosupp, Prhe, Pacc, Ptrain,SoCfinal] = Train_batt(Pref, eff, Vc
     Emax = 20; % [kWh]
     eff_b = 0.9; % battery efficiency, same as for caternary?
 
-    k = getKp(Pref, Vcat, v1,v2,v3,v4);
+    k = getKp(Pref, Vcat, v1,v2,v3,v4)
     k_soc = getKc(Pref, SoC, SoC1, SoC2, SoC3, SoC4);
     % Here, Ptrain is the "potential" Pcat
     if Pref >= 0 % Traction
-        Ptrain = k*Pref/eff; % @ after converter
+        Ptrain = Pref/eff; % @ after converter, removed k
         Pacc_available = k_soc*Pmax*eff_b %Pmax only equal to Pacc_available if SoC2 < soc 
         %Pacc = min(Pacc_available,Pref/(eff*eff_b)); % used to be second arg Ptrain
         Pacc = min(Pacc_available,Ptrain);
         Pacc2 = min((Pref/eff^2)*k_soc,Pmax);
         %Pcat = (Pref/eff - Pacc*eff_b)*k; % Pcat = Ptrain-Pacc before
-        Pcat = Ptrain-Pacc;
-        Pnosupp = Pref - Pacc*(eff_b*eff) - Pcat*eff; % Pref-(Ptrain*eff)
+        Pcat = (Ptrain-Pacc)*k; 
+        k
+        Pnosupp = Pref-Pacc*(eff)-(Pcat*eff) % Pref-(Ptrain*eff)
         Prhe = 0; % no Prhe if traction
         SoCfinal = (Emax*SoC - Pacc2*dt)/Emax; % new soc calculation
     elseif Pref < 0 % Braking
