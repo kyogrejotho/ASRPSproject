@@ -1,9 +1,9 @@
-clc; close all; clear all;
+clc; close all; clear;
 
 %% Test Case
 test_case
 
-global Vcat dt;
+global dt;
 dt = 10;
 %{
 test_case
@@ -24,9 +24,9 @@ end
 %}
 Vcat = 850;
 fprintf("train4")
-[Pcat,~,Pnosupp,Prhe,Pacc,SOC_final] = train004(350*1e3,5.5/100)
+[Pcat,~,Pnosupp,Prhe,Pacc,SOC_final] = train004(350*1e3,Vcat,5.5/100)
 fprintf("train5")
-[Pcat,~,Pnosupp,Prhe,Pacc,SOC_final] = train005(350*1e3,5.5/100)
+[Pcat,~,Pnosupp,Prhe,Pacc,SOC_final] = train005(350*1e3,Vcat,5.5/100)
 
 %{
 Pref = 350;
@@ -83,9 +83,9 @@ function [Pcat,Icat,Pnosup,Prhe] = train003(Pref)
     end
 end
 
-function [Pcat,Icat,Pnosup,Prhe,Pacc2,soc] = train004(Pref,soc)
+function [Pcat,Icat,Pnosup,Prhe,Pacc2,soc] = train004(Pref,Vcat,soc)
     % over current & over voltage /w accumulator
-    global Vcat dt;
+    global dt;
     eff = 0.9;
     Emax = 20 * 1e3; % Wh max energy in accumulator
     Pmax = 300 * 1e3; % Wh max power from/to accumulator
@@ -93,7 +93,7 @@ function [Pcat,Icat,Pnosup,Prhe,Pacc2,soc] = train004(Pref,soc)
     if Pref >= 0
         Pacc2 = min((Pref/(eff^2)),Pmax*ksoc_discharge(soc)); % from batt, before converter
         Pacc1 = Pacc2*eff; % after converter (@ Pcat node)
-        Pcat = (Pref/eff - Pacc1)*kOC(); % the rest of ref power from catenary (@ Pcat node)
+        Pcat = (Pref/eff - Pacc1)*kOC(Vcat); % the rest of ref power from catenary (@ Pcat node)
         Pnosup = Pref - (Pcat + Pacc1)*eff; % the rest of power is not supplied (@ Pref node)
         Prhe = 0;
 
@@ -103,7 +103,7 @@ function [Pcat,Icat,Pnosup,Prhe,Pacc2,soc] = train004(Pref,soc)
     else
         Pacc2 = max((Pref*(eff^2)),-Pmax*ksoc_charge(soc)); % to batt, after converter
         Pacc1 = Pacc2/eff; % before converter (@ Pcat node)
-        Pcat = ((eff*Pref) - Pacc1)*kOV(); % the rest of ref power to catenary (@ Pcat node)
+        Pcat = ((eff*Pref) - Pacc1)*kOV(Vcat); % the rest of ref power to catenary (@ Pcat node)
         Pnosup = 0;
         Prhe = Pref*eff - (Pcat + Pacc1); % (@ Pcat node)
 
@@ -112,9 +112,9 @@ function [Pcat,Icat,Pnosup,Prhe,Pacc2,soc] = train004(Pref,soc)
     end
 end
 
-function [Pcat,Icat,Pnosupp,Prhe,Pacc,soc_new] = train005(Pref,soc)
+function [Pcat,Icat,Pnosupp,Prhe,Pacc,soc_new] = train005(Pref,Vcat,soc)
     % over current & over voltage /w accumulator rev1
-    global Vcat dt;
+    global dt;
     eff_conv = 0.9;
     eff_inv = 0.9;
     Emax = 20 * 1e3; % Wh max energy in accumulator
@@ -130,7 +130,7 @@ function [Pcat,Icat,Pnosupp,Prhe,Pacc,soc_new] = train005(Pref,soc)
             Pacc = 0;
         end
 
-        Pcat = (Ptrain_demand - Pacc) * kcat(Pref); % the rest of ref power is from catenary (@ Pcat node)
+        Pcat = (Ptrain_demand - Pacc) * kcat(Vcat,Pref); % the rest of ref power is from catenary (@ Pcat node)
         Icat = Pcat/Vcat;
         Pnosupp = Ptrain_demand - (Pcat + Pacc)*eff_inv; % the rest of power is not supplied
         Prhe = 0;
@@ -145,23 +145,21 @@ function [Pcat,Icat,Pnosupp,Prhe,Pacc,soc_new] = train005(Pref,soc)
             Pacc = 0;
         end
 
-        Pcat = (Ptrain_demand - Pacc) * kcat(Pref); % the rest of ref power to catenary (@ Pcat node)
+        Pcat = (Ptrain_demand - Pacc) * kcat(Vcat,Pref); % the rest of ref power to catenary (@ Pcat node)
         Icat = Pcat/Vcat;
         Pnosupp = 0;
         Prhe = Ptrain_demand - (Pcat + Pacc); % (@ Pcat node)
     end
 end
 
-function k = kOC() % over current control
-    global Vcat
+function k = kOC(Vcat) % over current control
     V1_OC = 550; % min catenary voltage, 0 Pcat (traction) below this
     V2_OC = 600; % start of over current control, linear scaling to V1_OC
     k = (Vcat-V1_OC)/(V2_OC-V1_OC);
     clip(k,0,1);
 end
 
-function k = kOV() % over voltage control
-    global Vcat
+function k = kOV(Vcat) % over voltage control
     V3_OV = 850; % start of over voltage control, linear scaling to V4_OV
     V4_OV = 900; % max catenary voltage, 0 Pcat (braking) above this
     k = (V4_OV-Vcat)/(V4_OV-V3_OV);
@@ -182,8 +180,7 @@ function k = ksoc_charge(soc) % accumulator charging control
     clip(k,0,1);
 end
 
-function k = kcat(Pref) % over current & under voltage control
-    global Vcat
+function k = kcat(Vcat,Pref) % over current & under voltage control
     V1_OC = 550; % min catenary voltage, 0 Pcat (traction) below this
     V2_OC = 600; % start of over current control, linear scaling to V1_OC
     V3_OV = 850; % start of over voltage control, linear scaling to V4_OV
