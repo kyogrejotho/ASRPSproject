@@ -58,104 +58,106 @@ slope_profile_reverse = -1*fliplr(slope_profile);
 %figure(4);
 %plot(pk/1000,slope_profile,fliplr(pk/1000),slope_profile_reverse); grid on;
 
-
+% train from pk=0 to pk=pkmax
 train_speed = zeros(1,numel(pk));
-brake_weight = 0.05;
-brake_horizon_init = ceil(2000/dpk); % start braking from 2km (2000m) from change of speed profile
-brake_horizon = brake_horizon_init;
-%
+brake_horizon = pkmax;
 for x = 2:numel(pk)
-    if x < numel(pk)-brake_horizon_init-1
-        brake_speed_ref = speed_profile(x+brake_horizon);
-    else
-        brake_speed_ref = 0;
-    end
-    if brake_speed_ref < train_speed(x-1)
-        % v^2 = u^2 + 2*a*s
-        Fbrake_ref = brake_weight*(brake_speed_ref^2 - train_speed(x-1)^2)/(2*brake_horizon*dpk);
-        if brake_horizon > 2
-            brake_horizon = brake_horizon-1;
-        else
-            brake_horizon = brake_horizon_init;
-        end
-    else 
-        Fbrake_ref = 0;
-        brake_horizon = brake_horizon_init;
-    end
-    [~,speed] = train_traction(train_speed(x-1),speed_profile(x),Fbrake_ref,tunnel_profile(x),curve_profile(x),slope_profile(x),dpk);
+    [dec_brake_ref,brake_horizon] = braking_logic(x,train_speed,speed_profile,brake_horizon,dpk);
+    [~,speed] = train_traction(train_speed(x-1),speed_profile(x),dec_brake_ref,tunnel_profile(x),curve_profile(x),slope_profile(x),dpk);
     train_speed(x) = speed;
 end
 figure(1);
 plot(pk/1000,speed_profile,pk/1000,train_speed); grid on;
 
-%}
+% train from pk=pkmax to pk=0
 train_speed_reverse = zeros(1,numel(pk));
+brake_horizon = pkmax;
 for x = 2:numel(pk)
-    if x < numel(pk)-brake_horizon_init-1
-        brake_speed_ref = speed_profile_reverse(x+brake_horizon);
-    else
-        brake_speed_ref = 0;
-    end
-    if brake_speed_ref < train_speed_reverse(x-1)
-        % v^2 = u^2 + 2*a*s
-        Fbrake_ref = brake_weight*(brake_speed_ref^2 - train_speed_reverse(x-1)^2)/(2*brake_horizon*dpk);
-        if brake_horizon > 2
-            brake_horizon = brake_horizon-1;
-        else
-            brake_horizon = brake_horizon_init;
-        end
-    else 
-        Fbrake_ref = 0;
-        brake_horizon = brake_horizon_init;
-    end
-    [~,speed] = train_traction(train_speed_reverse(x-1),speed_profile_reverse(x),Fbrake_ref,tunnel_profile_reverse(x),curve_profile_reverse(x),slope_profile_reverse(x),dpk);
+    [dec_brake_ref,brake_horizon] = braking_logic(x,train_speed_reverse,speed_profile_reverse,brake_horizon,dpk);
+    [~,speed] = train_traction(train_speed_reverse(x-1),speed_profile_reverse(x),dec_brake_ref,tunnel_profile_reverse(x),curve_profile_reverse(x),slope_profile_reverse(x),dpk);
     train_speed_reverse(x) = speed;
 end
 figure(2);
 plot(pk/1000,speed_profile,pk/1000,fliplr(train_speed_reverse)); grid on;
-%}
 
-function [Pref,speed] = train_traction(last_speed,speed_ref,Fbrake_ref,isTunnel,curve_rad,slope,dx)
+
+
+function [dec_brake_ref,brake_horizon] = braking_logic(index,speed,speed_profile,brake_horizon,dpk)
+    brake_weight = 0.05; % how strong the train should brake, relative to the calculated brake force
+    brake_horizon_init = ceil(2000/dpk); % start braking from 2km (2000m) from change of speed profile
+
+    if brake_horizon > brake_horizon_init
+        brake_horizon = brake_horizon_init; % initialize braking horizon
+    end
+
+    % make sure the index of the brake horizon does not go beyond the array length/dimension
+    if index < numel(speed_profile)-brake_horizon_init-1
+        brake_speed_ref = speed_profile(index + brake_horizon);
+    else
+        brake_speed_ref = 0;
+    end
+    
+    % brake logic
+    if brake_speed_ref < speed(index-1)  
+        % brake if in the near future (inside brake horizon) there will be new speed profile that is below current speed
+        % v^2 = u^2 + 2*a*s
+        dec_brake_ref = brake_weight*(brake_speed_ref^2 - speed(index-1)^2)/(2*brake_horizon*dpk); %m/s^2 deceleration required from braking
+        % make sure the brake horizon do not goes to zero
+        if brake_horizon > 2
+            brake_horizon = brake_horizon - 1; % maintain braking speed ref on current horizon by shrinking the horizon
+        else
+            brake_horizon = brake_horizon_init; % reset the horizon when we reach the new speed profile
+        end
+    else
+        % no need to brake otherwise, keep the brake horizon to the furthest future
+        dec_brake_ref = 0;
+        brake_horizon = brake_horizon_init;
+    end
+end
+
+function [Pref,speed] = train_traction(last_speed,speed_ref,dec_brake_ref,isTunnel,curve_rad,slope,dx)
     eff_motor = 0.9;
     regen_min_speed = 30; %km/h
     M_train = 650*1e3; %kg train mass
     rotM_coef = 0.05; % rotating mass coefficient
     Meqv_train = (1 + rotM_coef)*M_train; %kg equivalent total mass of train;
-    Favail = calc_Favail(last_speed);
-    Fdrag = calc_Fdrag(last_speed,isTunnel,M_train);
-    Fcurve = calc_Fcurve(last_speed,curve_rad,M_train);
-    Fgrad = calc_Fgrad(slope,M_train);
-    Fext = Fdrag + Fcurve + Fgrad;
+    Favail = calc_Favail(last_speed); %N available force from the motor (max torque, max power limit)
+    Fdrag = calc_Fdrag(last_speed,isTunnel,M_train); %N air resistance force
+    Fcurve = calc_Fcurve(last_speed,curve_rad,M_train); %N rolling resistance (mainly from crving tracks)
+    Fgrad = calc_Fgrad(slope,M_train); %N grade resistance from gravity
+    Fext = Fdrag + Fcurve + Fgrad; %N total external force
     % acceleration logic
-    if Fbrake_ref == 0
+    if dec_brake_ref == 0
         if last_speed < speed_ref
             Fbrake = 0;
-            Fmotor = Favail;
+            Fmotor = Favail; %N maximum force for acceleration
         else
             Fbrake = 0;
-            Fmotor = clip(-Fext,-Favail,Favail);
+            Fmotor = clip(-Fext,-Favail,Favail); %N enough force for equilibrium
             if Fmotor < 0 && (last_speed < regen_min_speed)
-                Fbrake = Fmotor;
-                Fmotor = 0;
+                %speed limit of regenerative braking, use mechanical brake
+                Fbrake = Fmotor; %N
+                Fmotor = 0; %N
             end
         end
     else
-    % braking logic (preparation to reduce speed)
-        Fbrake_req = Fbrake_ref*Meqv_train - Fgrad;
+    % braking logic
+        Fbrake_req = dec_brake_ref*Meqv_train - Fgrad; %N braking force required
         if last_speed > regen_min_speed
-            Fmotor = max(Fbrake_req,-Favail);
-            Fbrake = Fbrake_req - Fmotor;
+            Fmotor = max(Fbrake_req,-Favail); %N force limit of regenerative braking
+            Fbrake = Fbrake_req - Fmotor; %N the rest is supplied by mechanical brake
         else
+            %speed limit of regenerative braking, use mechanical brake
             Fbrake = Fbrake_req;
             Fmotor = 0;
         end
     end
-    accel = (Fmotor + Fbrake + Fext)/Meqv_train + 1e-9;
+    accel = (Fmotor + Fbrake + Fext)/Meqv_train + 1e-9; %m/s^2 resultant acceleration
     % v = u + a*dt
     % v^2 = u^2 + 2*a*s
-    dt = (sqrt(2*dx*accel + (last_speed/3.6)^2) - (last_speed/3.6))/accel;
-    speed = last_speed + accel*dt*3.6;
-    Pref = Fmotor*(last_speed/3.6)/eff_motor;
+    dt = (sqrt(2*dx*accel + (last_speed/3.6)^2) - (last_speed/3.6))/accel; %s time required to fullfill motion of dx meters
+    speed = last_speed + accel*dt*3.6; %the speed after acceleration
+    Pref = Fmotor*(speed/3.6)/eff_motor; %power required at current speed
 end
 
 function Favail = calc_Favail(speed)
