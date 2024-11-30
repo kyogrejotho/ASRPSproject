@@ -1,9 +1,9 @@
 clear all; clc; 
 
-Rrail = 0.014;
+Rrail = 0.014; % Negative feeder resistance
 % wear_factor = 0.8;
 % Rline = (18.8/(Dcontact*wear_factor+Dmessenger)+Rrail); %Resistance from TSS to train ohm/km
-Rline = 0.051;
+Rline = 0.051; % Positive feeder resistance
 R = Rrail+Rline;
 
 Pcat = 650e3;
@@ -23,7 +23,7 @@ PratedTR = 0.35e6;
 Vsc_percent = 8; % Short circuit voltage percentage
 Rf_TPSS = 228e-3; % Substation converter resistance
 
-IratedTR = PratedTR/(sqrt(3)*VratedTR);
+IratedTR = PratedTR/(sqrt(3)*VratedTR); % Transformer rated current calculation
 ZTR = Vsc_percent * VratedTR/(100*IratedTR); % Short-circuit Impedance TR
 
 PTPSSloss = (ITPSS^2*ZTR)+(ITPSS^2*Rf_TPSS); % Total loss in TPSS
@@ -31,22 +31,23 @@ PTPSSloss = (ITPSS^2*ZTR)+(ITPSS^2*Rf_TPSS); % Total loss in TPSS
 end
 
 function [Vdrop] = unilateral(Pcat,Vcat,pk,TPSSx1,R)
-
-
-Itrain = Pcat/Vcat; %train current
-x1 = pk - TPSSx;
+%To calculate the Voltage drop, The location of train(pk) and location of
+%substation(TPSSx) is needed
+Itrain = Pcat/Vcat; %Train current 
+x1 = pk - TPSSx; % Distance between train and substation
 
 Vdrop = R*x1*Itrain;
 
 end
 
 function [Vdrop,ITPSS1,ITPSS2] = bilateral(Pcat,Vcat,pk,TPSSx1,TPSSx2,R)
-
-Itrain = Pcat/Vcat %train current
-x1 = pk - TPSSx1;
-L = abs(TPSSx2-TPSSx1);
-ITPSS1 = ((L-x1)/L)*Itrain
-ITPSS2 = (x1/L)*Itrain
-Vdrop = R*((x1*(L-x1))/L)*Itrain
+%To calculate the Voltage drop, The location of train(pk) and location of
+%substation(TPSSx) is needed
+Itrain = Pcat/Vcat %Train current
+x1 = pk - TPSSx1;% Distance between train and previous substation
+L = abs(TPSSx2-TPSSx1); % Distance between 2 substation
+ITPSS1 = ((L-x1)/L)*Itrain % Current that supply to train from the 1st substation
+ITPSS2 = (x1/L)*Itrain % Current that supply to train from the 2nd substation
+Vdrop = R*((x1*(L-x1))/L)*Itrain 
 
 end
