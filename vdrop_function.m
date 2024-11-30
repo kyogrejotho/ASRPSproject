@@ -17,7 +17,7 @@ pk = 2; % Train position
 [Vdrop,ITPSS1,ITPSS2] = bilateral(Pcat,Vcat,pk,TPSSx1,TPSSx2,R);
 TPSSloss(ITPSS1)
 
-function PTPSSloss = TPSSloss(ITPSS)
+function [PTPSSloss, VdropTPSS] = TPSSloss(ITPSS)
 VratedTR = 750;
 PratedTR = 0.35e6;
 Vsc_percent = 8; % Short circuit voltage percentage
@@ -26,8 +26,10 @@ Rf_TPSS = 228e-3; % Substation converter resistance
 IratedTR = PratedTR/(sqrt(3)*VratedTR); % Transformer rated current calculation
 ZTR = Vsc_percent * VratedTR/(100*IratedTR); % Short-circuit Impedance TR
 
-PTPSSloss = (ITPSS^2*ZTR)+(ITPSS^2*Rf_TPSS); % Total loss in TPSS
-
+TR_loss = ITPSS^2*ZTR; % Loss in rectifier
+Conv_loss = ITPSS^2*Rf_TPSS; % Loss in Transformer
+PTPSSloss = TR_loss+Conv_loss; % Total loss in TPSS
+VdropTPSS = sqrt(Conv_loss*(Rf_TPSS)) % Voltage drop in rectifier 
 end
 
 function [Vdrop] = unilateral(Pcat,Vcat,pk,TPSSx1,R)
