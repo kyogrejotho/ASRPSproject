@@ -110,7 +110,7 @@ eff = 0.9; % 0 - 1
 %[Pcat41,Pnosupp41,Prhe41] = Train_substation(-650,0.9,735);
 
 % Test offboard accumulation
-[Pcat51,Pnosupp51,Prhe51,Pacc51] = Train_offboard(650,0.9,765,0.5); % Testing only, for charging
+[Pcat51,Pnosupp51,Prhe51,Pacc51] = Train_offboard(650,0.9,735,0.5); % Testing only, for charging
 
 % Results of Train_batt
 % for j = 1: length(arr_SOC_init)
@@ -263,7 +263,7 @@ function [Pcat, Pnosupp, Prhe, Pacc] = Train_offboard(Pref, eff, Vcat, SoC)
     [k_off,bool_chrg] = getKoff(Vcat,Vreg,dV1,dV2,dV3); % temporary, need to know logic for chrg/dchrg
     if ~bool_chrg
         Ptrain = Pref/eff; % @ after converter, removed k
-        Pacc_available = k_off*Pmax*eff_b; %Pmax only equal to Pacc_available if SoC2 < soc 
+        Pacc_available = k_soc*k_off*Pmax*eff_b %Pmax only equal to Pacc_available if SoC2 < soc 
         %Pacc = min(Pacc_available,Pref/(eff*eff_b)); % used to be second arg Ptrain
         Pacc = min(Pacc_available,Ptrain);
         Pacc2 = min((Pref/eff^2),Pmax*k_soc);
@@ -274,7 +274,7 @@ function [Pcat, Pnosupp, Prhe, Pacc] = Train_offboard(Pref, eff, Vcat, SoC)
         SoCfinal = (Emax*SoC - Pacc2*dt)/Emax; % new soc calculation [kWh * {0-1} - kW*t]/kWh
     elseif bool_chrg
         Ptrain = Pref*eff % no k yet since we have not hit cat yet
-        Pacc_available = -1*k_off*Pmax/eff_b %Pmax only equal to Pacc_available if soc < SoC3
+        Pacc_available = -1*k_off*k_soc*Pmax/eff_b %Pmax only equal to Pacc_available if soc < SoC3
         Pacc = max(Pacc_available, Ptrain); % these are negative values, the max value is smaller in magnitude
         Pacc2 = max((Pref*(eff^2)),-Pmax*k_soc);
         Pcat = max(Ptrain-Pacc, k*Ptrain); % Ptrain was originally Pcat in slides, seems wrong
