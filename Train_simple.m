@@ -105,12 +105,21 @@ eff = 0.9; % 0 - 1
   % [Pcat9,Pnosupp9,Prhe9,Pacc9,Ptrain9] = Train_batt(200,0.9,850,0.5);
 % Testing only, for discharging
 % [Pcat3,Pnosupp3,Prhe3,Pacc3,Ptrain3] = Train_batt(-300,0.9,875,0.5); % Testing only, for charging
-
+% For charging
+%[Pcat11,Pnosupp11,Prhe11,Pacc11,Ptrain11] = Train_batt(-350,0.9,750,0.85);
+%[Pcat12,Pnosupp12,Prhe12,Pacc12,Ptrain12] = Train_batt(-200,0.9,650,0.92);
+%[Pcat13,Pnosupp13,Prhe13,Pacc13,Ptrain13] = Train_batt(-50,0.9,850,0.98);
+%[Pcat14,Pnosupp14,Prhe14,Pacc14,Ptrain14] = Train_batt(-500,0.9,870,0.8);
+ %[Pcat15,Pnosupp15,Prhe15,Pacc15,Ptrain15] = Train_batt(-50,0.9,860,0.93);
+%[Pcat16,Pnosupp16,Prhe16,Pacc16,Ptrain16] = Train_batt(-300,0.9,870,0.96);
+ %[Pcat17,Pnosupp17,Prhe17,Pacc17,Ptrain17] = Train_batt(-500,0.9,900,0.1);
+%[Pcat18,Pnosupp18,Prhe18,Pacc18,Ptrain18] = Train_batt(-50,0.9,950,0.92);
+[Pcat19,Pnosupp19,Prhe19,Pacc19,Ptrain19] = Train_batt(-300,0.9,950,0.95);
 % Test substation
 %[Pcat41,Pnosupp41,Prhe41] = Train_substation(-650,0.9,735);
 
 % Test offboard accumulation
-[Pcat51,Pnosupp51,Prhe51,Pacc51] = Train_offboard(650,0.9,735,0.5); % Testing only, for charging
+%[Pcat51,Pnosupp51,Prhe51,Pacc51] = Train_offboard(650,0.9,735,0.5); % Testing only, for charging
 
 % Results of Train_batt
 % for j = 1: length(arr_SOC_init)
