@@ -162,7 +162,7 @@ end
 
 function Favail = calc_Favail(speed)
     %Fmax_motor = 340000; %N
-    Pmax_motor = 8800; %kW
+    Pmax_motor = 10000; %kW
     speed_base_motor = 180; %km/h
     if speed < speed_base_motor %km/h, base speed
         Favail = (Pmax_motor/speed_base_motor)*3600;
