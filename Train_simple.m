@@ -182,10 +182,18 @@ end
 
 function [k_off,bool_chrg] = getKoff (Vcat, Vreg, dV1, dV2, dV3)
     if Vcat < Vreg % Discharge when grid voltage down
-        k_off = (Vcat-(Vreg-dV1-dV2))/(dV1); % Vcat - lower limit
+        if Vcat < Vreg-dv2 % Deadband
+            k_off = 0;
+        else
+            k_off = (Vcat-(Vreg-dV1-dV2))/(dV1); % Vcat - lower limit, at the slope
+        end
         bool_chrg = 0;
     elseif Vcat > Vreg % Charge when grid voltage up
-        k_off = (Vcat-(Vreg+dV2))/(dV3); % upper limit - Vcat
+        if Vcat < Vreg+dv2 %deadband
+            k_off = 0;
+        else 
+            k_off = (Vcat-(Vreg+dV2))/(dV3); % upper limit - Vcat
+        end
         bool_chrg = 1;
     end
     k_off = clip(k_off, 0, 1);
