@@ -116,7 +116,7 @@ eff = 0.9; % 0 - 1
   % [Pcat7,Pnosupp7,Prhe7,Pacc7,Ptrain7] = Train_batt(350,0.9,650,0.04);
   % [Pcat8,Pnosupp8,Prhe8,Pacc8,Ptrain8] = Train_batt(300,0.9,650,0.08);
   % [Pcat9,Pnosupp9,Prhe9,Pacc9,Ptrain9] = Train_batt(200,0.9,850,0.5);
-  [Pcat91,Pnosupp92,Prhe92,Pacc92,Ptrain92,SOCfinal92] = Train_batt(-400,0.9,890,0.94);
+  %[Pcat91,Pnosupp92,Prhe92,Pacc92,Ptrain92,SOCfinal92] = Train_batt(-400,0.9,890,0.94);
 % Testing only, for discharging
 % [Pcat3,Pnosupp3,Prhe3,Pacc3,Ptrain3] = Train_batt(-300,0.9,875,0.5); % Testing only, for charging
 % For charging
@@ -135,24 +135,24 @@ eff = 0.9; % 0 - 1
 %[Pcat41,Pnosupp41,Prhe41] = Train_substation(-650,0.9,735);
 
 % Results of Train_batt 2
-for i = 1:length(arr_Pref)
-    [iter_Pcat,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_Ptrain,iter_SoCfinal] = Train_batt(arr_Pref(i),eff,arr_Vcat(i),arr_SOC_init(i));
-    arr_Pcat(i) = iter_Pcat;
-    arr_Pnosupp(i) = iter_Pnosupp;
-    arr_Pacc(i) = iter_Pacc;
-    % iter_Pacc
-    % iter_Pnosupp
-    % iter_Pcat
-    % iter_Prhe
-    arr_Prhe(i) = iter_Prhe;
-    arr_Ptrain(i) = iter_Ptrain;
-    arr_SOC_final(i) = iter_SOCfinal;
-end
-results = table(arr_Pref, arr_Vcat,arr_SOC_init,arr_Pcat,arr_Pnosupp, arr_Prhe, arr_Pacc,arr_Ptrain,arr_SOC_final);
-results.Properties.VariableNames = arr_labels;
-arr_Pcat;
+% for i = 1:length(arr_Pref)
+%     [iter_Pcat,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_Ptrain,iter_SoCfinal] = Train_batt(arr_Pref(i),eff,arr_Vcat(i),arr_SOC_init(i));
+%     arr_Pcat(i) = iter_Pcat;
+%     arr_Pnosupp(i) = iter_Pnosupp;
+%     arr_Pacc(i) = iter_Pacc;
+%     % iter_Pacc
+%     % iter_Pnosupp
+%     % iter_Pcat
+%     % iter_Prhe
+%     arr_Prhe(i) = iter_Prhe;
+%     arr_Ptrain(i) = iter_Ptrain;
+%     arr_SOC_final(i) = iter_SOCfinal;
+% end
+% results = table(arr_Pref, arr_Vcat,arr_SOC_init,arr_Pcat,arr_Pnosupp, arr_Prhe, arr_Pacc,arr_Ptrain,arr_SOC_final);
+% results.Properties.VariableNames = arr_labels;
+% arr_Pcat;
 % Test offboard accumulation
-%[Pcat51,Pnosupp51,Prhe51,Pacc51] = Train_offboard(650,0.9,735,0.5); % Testing only, for charging
+[Pcat51,Pnosupp51,Prhe51,Pacc51] = Train_offboard(650,0.9,745,0.5); % Testing only, for charging
 
 % Results of Train_batt
 % for j = 1: length(arr_SOC_init)
@@ -304,7 +304,7 @@ function [Pcat, Pnosupp, Prhe, Pacc] = Train_offboard(Pref, eff, Vcat, SoC)
     
     k = getKp(Pref, Vcat, v1,v2,v3,v4);
     k_soc = getKc(Pref, SoC, SoC1, SoC2, SoC3, SoC4);
-    [k_off,bool_chrg] = getKoff(Vcat,Vreg,dV1,dV2,dV3); % temporary, need to know logic for chrg/dchrg
+    [k_off,bool_chrg] = getKoff(Vcat,Vreg,dV1,dV2,dV3) % temporary, need to know logic for chrg/dchrg
     if ~bool_chrg
         Ptrain = Pref/eff; % @ after converter, removed k
         Pacc_available = k_soc*k_off*Pmax*eff_b %Pmax only equal to Pacc_available if SoC2 < soc 

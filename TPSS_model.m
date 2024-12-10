@@ -1,7 +1,7 @@
 clear all; clc;
 %% Case1
 
-Pcat_train1 = 650e3;
+Pcat_train1 = 650e3; % This is known, is split between L and R (in slides, 307 and 343)
 Vcat_train1 = 550;
 Pcat_train2 = 350e3;
 Vcat_train2 = 582;
@@ -160,7 +160,7 @@ if (Vcat < Vcat_nominal)
     I_TPSS = (Vcat_nominal-Vcat)/Rf_TPSS;
     P_TPSS = I_TPSS*Vcat_nominal;
     P_TPSS_net = P_TPSS - P_TPSS_loss;
-else
+else % Substation is blocked
     I_TPSS = 0;
     P_TPSS = 0;
     P_TPSS_loss = 0;
