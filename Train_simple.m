@@ -2,7 +2,9 @@ clc;
 clear all;
 
 eff = 0.9;
-
+%% Put test case here
+[Pcat51,Pnosupp51,Prhe51,Pacc51] = Train_offboard(650,0.9,745,0.5); % Testing only, for charging
+%% Functions
 function [Pcat] = Train_simple_fxn(Pref,eff, Vcat)
     Pcat = Pref/eff
     Icat = Pcat/Vcat
@@ -182,14 +184,14 @@ end
 
 function [k_off,bool_chrg] = getKoff (Vcat, Vreg, dV1, dV2, dV3)
     if Vcat < Vreg % Discharge when grid voltage down
-        if Vcat < Vreg-dv2 % Deadband
+        if Vcat > Vreg-dV2 % Deadband
             k_off = 0;
         else
             k_off = (Vcat-(Vreg-dV1-dV2))/(dV1); % Vcat - lower limit, at the slope
         end
         bool_chrg = 0;
     elseif Vcat > Vreg % Charge when grid voltage up
-        if Vcat < Vreg+dv2 %deadband
+        if Vcat < Vreg+dV2 %deadband
             k_off = 0;
         else 
             k_off = (Vcat-(Vreg+dV2))/(dV3); % upper limit - Vcat
