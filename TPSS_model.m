@@ -33,7 +33,7 @@ DC_loss_total = DC_loss_TPSS1 + DC_loss_TPSS2 + DC_loss_TPSS3
 % P_DC_loss12 = DC_loss(I_TPSS1,I_train1_TPSS2,pk_train1,TPSSx1,TPSSx2)
 % P_DC_loss23 = DC_loss(I_train2_TPSS2,I_TPSS3,pk_train2,TPSSx1,TPSSx2)
 
-%% RUN Test case
+%% RUN Test case Coventional Case 1 2 3 4
 clear all; clc;
 
 % Data arrays
@@ -100,17 +100,162 @@ results.Properties.VariableNames = ["Vcat_TPSS1", "Vcat_TPSS2", "Vcat_TPSS3", "P
 
 % Display the table
 disp(results);
+%% RUN Test case Reversible TPSS case 5 6
+clear all; clc;
 
-%% Revesible TPSS
+% Data arrays
+arr_Vcat_TPSS1 = [793;799]; % Input Vcat at Substation 1
+arr_Vcat_TPSS2 = [766;799]; % Input Vcat at Substation 2
+arr_Vcat_TPSS3 = [716;799]; % Input Vcat at Substation 3
+
+arr_Pcat_train1 = [-585e3;-585e3;]; % Input Pcat at train 1
+arr_Vcat_train1 = [806;800]; % Input Vcat at train 1
+arr_Pcat_train2 = [526e3;-585e3]; % Input Pcat at train 2
+arr_Vcat_train2 = [703;790]; % Input Vcat at train 2
+
+% Pre-allocating arrays
+n = length(arr_Vcat_TPSS1);
+arr_P_TPSS1 = zeros(n,1);
+arr_P_TPSS1_loss = zeros(n,1);
+arr_P_TPSS1_net = zeros(n,1);
+arr_I_TPSS1 = zeros(n,1);
+arr_P_TPSS2 = zeros(n,1);
+arr_P_TPSS2_loss = zeros(n,1);
+arr_P_TPSS2_net = zeros(n,1);
+arr_I_TPSS2 = zeros(n,1);
+arr_P_TPSS3 = zeros(n,1);
+arr_P_TPSS3_loss = zeros(n,1);
+arr_P_TPSS3_net = zeros(n,1);
+arr_I_TPSS3 = zeros(n,1);
+arr_P_TPSS1_train1 = zeros(n,1);
+arr_P_TPSS2_train1 = zeros(n,1);
+arr_I_train1_TPSS2 = zeros(n,1);
+arr_I_train2_TPSS2 = zeros(n,1);
+arr_P_TPSS2_train2 = zeros(n,1);
+arr_P_TPSS3_train2 = zeros(n,1);
+arr_DC_loss_TPSS1 = zeros(n,1);
+arr_DC_loss_TPSS2 = zeros(n,1);
+arr_DC_loss_TPSS3 = zeros(n,1);
+arr_DC_loss_total = zeros(n,1);
+
+% Loop to compute values
+for i = 1:n
+    [arr_P_TPSS1(i), arr_P_TPSS1_loss(i), arr_P_TPSS1_net(i), arr_I_TPSS1(i)] = TPSS_reverse_power(arr_Vcat_TPSS1(i));
+    [arr_P_TPSS2(i), arr_P_TPSS2_loss(i), arr_P_TPSS2_net(i), arr_I_TPSS2(i)] = TPSS_reverse_power(arr_Vcat_TPSS2(i));
+    [arr_P_TPSS3(i), arr_P_TPSS3_loss(i), arr_P_TPSS3_net(i), arr_I_TPSS3(i)] = TPSS_reverse_power(arr_Vcat_TPSS3(i));
+    [arr_P_TPSS1_train1(i), arr_P_TPSS2_train1(i)] = Train_demand(arr_I_TPSS1(i), arr_Vcat_train1(i), arr_Pcat_train1(i));
+    arr_I_train1_TPSS2(i) = arr_P_TPSS2_train1(i) / arr_Vcat_train1(i);
+    arr_I_train2_TPSS2(i) = arr_I_TPSS2(i) - arr_I_train1_TPSS2(i);
+    [arr_P_TPSS2_train2(i), arr_P_TPSS3_train2(i)] = Train_demand(arr_I_train2_TPSS2(i), arr_Vcat_train2(i), arr_Pcat_train2(i));
+
+    arr_DC_loss_TPSS1(i) = arr_P_TPSS1_net(i) - arr_P_TPSS1_train1(i);
+    arr_DC_loss_TPSS2(i) = arr_P_TPSS2_net(i) - (arr_P_TPSS2_train1(i) + arr_P_TPSS2_train2(i));
+    arr_DC_loss_TPSS3(i) = arr_P_TPSS3_net(i) - arr_P_TPSS3_train2(i);
+    arr_DC_loss_total(i) = arr_DC_loss_TPSS1(i) + arr_DC_loss_TPSS2(i) + arr_DC_loss_TPSS3(i);
+end
+
+% Create table
+results = table(arr_Vcat_TPSS1, arr_Vcat_TPSS2, arr_Vcat_TPSS3, ...
+                arr_Pcat_train1/1000, arr_Vcat_train1, arr_Pcat_train2/1000, arr_Vcat_train2, ...
+                arr_P_TPSS1/1000, arr_P_TPSS2/1000, arr_P_TPSS3/1000, ...
+                arr_P_TPSS1_loss/1000, arr_P_TPSS2_loss/1000, arr_P_TPSS3_loss/1000, arr_DC_loss_total/1000);
+
+% Assign variable names to the table
+results.Properties.VariableNames = ["Vcat_TPSS1", "Vcat_TPSS2", "Vcat_TPSS3", "Pcat_train1", "Vcat_train1", ...
+                                    "Pcat_train2", "Vcat_train2", "P_TPSS1", "P_TPSS2", "P_TPSS3", ...
+                                    "P_TPSS1_loss", "P_TPSS2_loss", "P_TPSS3_loss", "DC_loss_total"];
+
+% Display the table
+disp(results);
+
+%% RUN Test case Non-rev Accumulator TPSS case 7 8
+clear all; clc;
+
+% Data arrays
+arr_Vcat_TPSS1 = [651;760;651]; % Input Vcat at Substation 1
+arr_soc_TPSS1 = [0.5;0.5;0.07];
+arr_Vcat_TPSS2 = [683;766;683]; % Input Vcat at Substation 2
+arr_soc_TPSS2 = [0.5;0.5;0.07];
+arr_Vcat_TPSS3 = [690;733;690]; % Input Vcat at Substation 3
+arr_soc_TPSS3 = [0.5;0.5;0.07];
+
+arr_Pcat_train1 = [722e3;-585e3;722e3]; % Input Pcat at train 1
+arr_Vcat_train1 = [610;794;610]; % Input Vcat at train 1
+arr_Pcat_train2 = [388e3;526e3;388e3]; % Input Pcat at train 2
+arr_Vcat_train2 = [642;710;642]; % Input Vcat at train 2
+
+% Pre-allocating arrays
+n = length(arr_Vcat_TPSS1);
+arr_P_TPSS1 = zeros(n,1);
+arr_P_TPSS1_loss = zeros(n,1);
+arr_P_TPSS1_net = zeros(n,1);
+arr_I_TPSS1 = zeros(n,1);
+arr_P_TPSS2 = zeros(n,1);
+arr_P_TPSS2_loss = zeros(n,1);
+arr_P_TPSS2_net = zeros(n,1);
+arr_I_TPSS2 = zeros(n,1);
+arr_P_TPSS3 = zeros(n,1);
+arr_P_TPSS3_loss = zeros(n,1);
+arr_P_TPSS3_net = zeros(n,1);
+arr_I_TPSS3 = zeros(n,1);
+arr_P_TPSS1_train1 = zeros(n,1);
+arr_P_TPSS2_train1 = zeros(n,1);
+arr_I_train1_TPSS2 = zeros(n,1);
+arr_I_train2_TPSS2 = zeros(n,1);
+arr_P_TPSS2_train2 = zeros(n,1);
+arr_P_TPSS3_train2 = zeros(n,1);
+arr_DC_loss_TPSS1 = zeros(n,1);
+arr_DC_loss_TPSS2 = zeros(n,1);
+arr_DC_loss_TPSS3 = zeros(n,1);
+arr_DC_loss_total = zeros(n,1);
+arr_Pacc_batt_TPSS1 = zeros(n,1);
+arr_Pacc_batt_TPSS2 = zeros(n,1);
+arr_Pacc_batt_TPSS3 = zeros(n,1);
+
+% Loop to compute values
+for i = 1:n
+    [arr_P_TPSS1(i), arr_P_TPSS1_loss(i), arr_P_TPSS1_net(i), arr_I_TPSS1(i), arr_Pacc_batt_TPSS1(i)] = TPSS_acc_power(arr_Vcat_TPSS1(i),arr_soc_TPSS1(i));
+    [arr_P_TPSS2(i), arr_P_TPSS2_loss(i), arr_P_TPSS2_net(i), arr_I_TPSS2(i), arr_Pacc_batt_TPSS2(i)] = TPSS_acc_power(arr_Vcat_TPSS2(i),arr_soc_TPSS2(i));
+    [arr_P_TPSS3(i), arr_P_TPSS3_loss(i), arr_P_TPSS3_net(i), arr_I_TPSS3(i), arr_Pacc_batt_TPSS3(i)] = TPSS_acc_power(arr_Vcat_TPSS3(i),arr_soc_TPSS3(i));
+    [arr_P_TPSS1_train1(i), arr_P_TPSS2_train1(i)] = Train_demand(arr_I_TPSS1(i), arr_Vcat_train1(i), arr_Pcat_train1(i));
+    arr_I_train1_TPSS2(i) = arr_P_TPSS2_train1(i) / arr_Vcat_train1(i);
+    arr_I_train2_TPSS2(i) = arr_I_TPSS2(i) - arr_I_train1_TPSS2(i);
+    [arr_P_TPSS2_train2(i), arr_P_TPSS3_train2(i)] = Train_demand(arr_I_train2_TPSS2(i), arr_Vcat_train2(i), arr_Pcat_train2(i));
+
+    arr_DC_loss_TPSS1(i) = arr_P_TPSS1_net(i) - arr_P_TPSS1_train1(i);
+    arr_DC_loss_TPSS2(i) = arr_P_TPSS2_net(i) - (arr_P_TPSS2_train1(i) + arr_P_TPSS2_train2(i));
+    arr_DC_loss_TPSS3(i) = arr_P_TPSS3_net(i) - arr_P_TPSS3_train2(i);
+    arr_DC_loss_total(i) = arr_DC_loss_TPSS1(i) + arr_DC_loss_TPSS2(i) + arr_DC_loss_TPSS3(i);
+end
+
+% Create table
+results = table(arr_Vcat_TPSS1, arr_Vcat_TPSS2, arr_Vcat_TPSS3, ...
+                arr_Pcat_train1/1000, arr_Vcat_train1, arr_Pcat_train2/1000, arr_Vcat_train2, ...
+                arr_P_TPSS1/1000, arr_P_TPSS2/1000, arr_P_TPSS3/1000, ...
+                arr_Pacc_batt_TPSS1/1000, arr_Pacc_batt_TPSS2/1000, arr_Pacc_batt_TPSS3/1000, ...
+                arr_P_TPSS1_loss/1000, arr_P_TPSS2_loss/1000, arr_P_TPSS3_loss/1000, arr_DC_loss_total/1000);
+
+% Assign variable names to the table
+results.Properties.VariableNames = ["Vcat_TPSS1", "Vcat_TPSS2", "Vcat_TPSS3", "Pcat_train1", "Vcat_train1", ...
+                                    "Pcat_train2", "Vcat_train2", "P_TPSS1", "P_TPSS2", "P_TPSS3", ...
+                                    "Pbatt_TPSS1", "Pbatt_TPSS2", "Pbatt_TPSS3", ...
+                                    "P_TPSS1_loss", "P_TPSS2_loss", "P_TPSS3_loss", "DC_loss_total"];
+
+% Display the table
+disp(results);
+
+
+%% Non Revesible TPSS + Acc
 clear all; clc;
 % Check the slide lesson 2 DC rail page 19
-Vcat_TPSS1 = 765;
-SoC = 0.5;
+Vcat_TPSS1 = 760; % Change this to test substation !!!!!
+SoC = 0.8;
 TPSS_acc_power(Vcat_TPSS1,SoC)
 
 
-function [P_TPSS P_TPSS_loss P_TPSS_net I_TPSS] = TPSS_acc_power(Vcat_TPSS,SoC)
-Vcat_nominal = 750;
+function [P_TPSS P_TPSS_loss P_TPSS_net I_TPSS Pacc_cat] = TPSS_acc_power(Vcat_TPSS,SoC)
+Vcat_nominal = 750; % THIS IS NOMINAL VOLTAGE DO NOT CHANGE THIS
+Rf_TPSS = 228e-3; % Substation converter resistance
 
 SoC1 = 0.05;
 SoC2 = 0.1;
@@ -136,15 +281,36 @@ k_soc = getKc(SoC, SoC1, SoC2, SoC3, SoC4);
 
 
 if(Vcat_TPSS <= V2) % Vcat lower than blocking state voltage go to discharging mode
-Pacc1 = Pmax*k
-Pacc2 = k_soc*Pacc1*eff
-
+Pacc_batt = Pmax*k_soc*k; % On battery side
+Pacc_cat = Pacc_batt*eff; % On DC grid side
+I_TPSS = (Vcat_nominal-Vcat_TPSS)/Rf_TPSS;
+P_TPSS_loss = ((Vcat_nominal-Vcat_TPSS)^2)/Rf_TPSS;
+P_TPSS_req = I_TPSS*Vcat_nominal;  % The full power that substation need to provide
+    if(P_TPSS_req <= Pacc_cat)
+    P_TPSS = 0; % Use only battery
+    else    
+    P_TPSS = P_TPSS_req - Pacc_cat; % Use both battery and substation
+    end
+P_TPSS_net = P_TPSS_req - P_TPSS_loss; % The real that DC get from TPSS pass through converter
 elseif(Vcat_TPSS >= V3) % Vcat higher than blocking state voltage go to charging mode
-Pacc1 = -1*Pmax*k
-Pacc2 = k_soc*Pacc1/eff
+Pacc_batt = -1*Pmax*k_soc*k
+Pacc_cat = Pacc_batt/eff
+P_TPSS_loss = 0;
+I_TPSS = (Vcat_nominal-Vcat_TPSS)/Rf_TPSS;
+P_TPSS_req = I_TPSS*Vcat_nominal
+    if(P_TPSS_req >= Pacc_cat)
+    P_TPSS = 0 % All power can fill the battery
+    else    
+    P_TPSS = P_TPSS_req - Pacc_cat % Partial of power that left!!!
+    end
+P_TPSS_net = P_TPSS - P_TPSS_loss; 
 else % Vcat in the blocking state
-Pacc1 = 0
-Pacc2 = 0
+Pacc_batt = 0;
+Pacc_cat = 0;
+I_TPSS = 0;
+P_TPSS = 0;
+P_TPSS_loss = 0;
+P_TPSS_net = 0; 
 end
 
 end
@@ -168,6 +334,31 @@ else % Substation is blocked
 end
 end
 
+function [P_TPSS P_TPSS_loss P_TPSS_net I_TPSS] = TPSS_reverse_power(Vcat)
+
+Rf_TPSS = 228e-3; % Substation converter resistance
+Rr_TPSS = 2*Rf_TPSS;
+Vcat_nominal = 750;
+
+Vr = 10;
+
+if (Vcat < Vcat_nominal)
+    P_TPSS_loss = ((Vcat_nominal-Vcat)^2)/Rf_TPSS;
+    I_TPSS = (Vcat_nominal-Vcat)/Rf_TPSS;
+    P_TPSS = I_TPSS*Vcat_nominal;
+    P_TPSS_net = P_TPSS - P_TPSS_loss;
+elseif (Vcat > Vcat_nominal+Vr)
+    P_TPSS_loss = ((Vcat_nominal-Vcat)^2)/Rr_TPSS;
+    I_TPSS = (Vcat_nominal-Vcat)/Rr_TPSS;
+    P_TPSS = I_TPSS*Vcat_nominal;
+    P_TPSS_net = P_TPSS - P_TPSS_loss;
+else % Substation is blocked
+    I_TPSS = 0;
+    P_TPSS = 0;
+    P_TPSS_loss = 0;
+    P_TPSS_net = 0; 
+end
+end
 
 function [Pcat_train_TPSS_L,Pcat_train_TPSS_R] = Train_demand(I_TPSS,Vcat_train,Pcat_train)
 Pcat_train_TPSS_L = Vcat_train*I_TPSS;
