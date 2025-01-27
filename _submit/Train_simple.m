@@ -29,7 +29,25 @@ for i = 1:length(arr_Pref)
 end
 results = table(arr_Pref, arr_Vcat,arr_SOC_init, arr_Pcat, arr_Prhe, arr_Pnosupp, arr_Pacc, arr_Ptrain, arr_SoC_final);
 results.Properties.VariableNames = ["Pref", "Vcat", "SOCinit", "Pcat", "Prhe","Pnosupp", "Pacc","Ptrain", "SOCfinal"];
-writetable(results,'trainWithBattery.csv')
+% writetable(results,'trainWithBattery.csv')
+
+%% Train without Battery test cases
+arr_labels = ["Pref","Vcat", "Pcat", "Prhe", "Pnosupp"];
+arr_Pref = [350; -350; 0; 350; 350; 350; 350; -350; -350; -350; -350];
+arr_Vcat = [650; 800; 700; 600; 550; 575; 500; 850; 900; 870; 950];
+arr_Pcat = ones(11,1);
+arr_Prhe = ones(11,1);
+arr_Pnosupp = ones(11,1);
+
+for i = 1:length(arr_Pref)
+    [iter_Pcat,iter_Pnosupp,iter_Prhe] = Train_protection(arr_Pref(i),eff,arr_Vcat(i));
+    arr_Pcat(i) = iter_Pcat;
+    arr_Pnosupp(i) = iter_Pnosupp;
+    arr_Prhe(i) = iter_Prhe;
+end
+resultsProtect = table(arr_Pref, arr_Vcat, arr_Pcat, arr_Prhe, arr_Pnosupp);
+resultsProtect.Properties.VariableNames = arr_labels;
+writetable(resultsProtect,'trainWithProtection.csv')
 %% FUNCTIONS
 
 % Simple Train
