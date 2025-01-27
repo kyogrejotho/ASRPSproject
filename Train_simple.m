@@ -3,7 +3,8 @@ clear all;
 
 eff = 0.9;
 %% Put test case here
-[Pcat51,Pnosupp51,Prhe51,Pacc51] = Train_offboard(650,0.9,745,0.5); % Testing only, for charging
+%[Pcat51,Pnosupp51,Prhe51,Pacc51] = Train_offboard(650,0.9,745,0.5); % Testing only, for charging
+[Pcat51,Pnosupp51,Prhe51,Pacc51] = Train_batt(650,0.9,570,0.5); % Testing only, for charging
 %% Functions
 function [Pcat] = Train_simple_fxn(Pref,eff, Vcat)
     Pcat = Pref/eff
@@ -51,10 +52,10 @@ function [Pcat, Pnosupp, Prhe, Pacc, Ptrain,SoCfinal] = Train_batt(Pref, eff, Vc
     k_soc = getKc(Pref, SoC, SoC1, SoC2, SoC3, SoC4);
     % Here, Ptrain is the "potential" Pcat
     if Pref >= 0 % Traction
-        Ptrain = Pref/eff; % @ after converter, removed k
+        Ptrain = Pref/eff % @ after converter, removed k
         Pacc_available = k_soc*Pmax*eff_b; %Pmax only equal to Pacc_available if SoC2 < soc 
         %Pacc = min(Pacc_available,Pref/(eff*eff_b)); % used to be second arg Ptrain
-        Pacc = min(Pacc_available,Ptrain);
+        Pacc = min(Pacc_available,Ptrain); % This min ensures we don't go above max available Pacc nor over Ptrain demand
         Pacc2 = min((Pref/eff^2),Pmax*k_soc);
         %Pcat = (Pref/eff - Pacc*eff_b)*k; % Pcat = Ptrain-Pacc before
         Pcat = (Ptrain-Pacc)*k; 
