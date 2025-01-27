@@ -2,10 +2,34 @@ clc;
 clear all;
 
 
-%% Put test case here
+%% Put test case here individually
 eff = 0.9; % efficiency of onborad converter/rectifier/inverter
-[Pcat51, Pnosupp51, Prhe51, Pacc51] = Train_offboard(650, 0.9, 745, 0.5); % Testing only, for charging
+%[Pcat51, Pnosupp51, Prhe51, Pacc51] = Train_offboard(650, 0.9, 745, 0.5); % Testing only, for charging
+%% In Table From
+arr_labels = ["Pref", "Vcat", "SOCinit", "Pcat", "Prhe","Pnosupp", "Pacc","Ptrain", "SOCfinal"]; % NOT USED NOW
+arr_Pref = [350;200;350;200;350;350;200;350;350;150;650;350;200;650;350;200;200;-350;-650;-350;-650;-150;-200;-650;-150;-650;-300;-650;-150;-650;-200;-600;-1000;-650];
+arr_Vcat = [550;550;550;550;550;600;600;600;600;600;575;575;575;575;575;575;575; 900; 900; 900; 900; 900; 850; 850; 850; 850; 850; 875; 875; 875; 875; 890;  875; 890];
+arr_SOC_init = [0.5;0.5;0.075;0.075;0.05;0.05;0.5;0.5;0.075;0.09;0.5;0.5;0.5;0.075;0.075;0.075;0.05;1;0.5;0.5;0.975;0.975;1;0.975;0.975;0.5;0.5;0.975;0.975;0.5;0.5;1;0.5;0.975];
+%Pre-allocate arrays
+arr_Pcat = ones(length(arr_Pref),1);
+arr_Pnosupp = ones(length(arr_Pref),1);
+arr_Prhe = ones(length(arr_Pref),1);
+arr_Pacc = ones(length(arr_Pref),1);
+arr_SoC_final = ones(length(arr_Pref),1);
+arr_Ptrain = ones(length(arr_Pref),1);
 
+for i = 1:length(arr_Pref)
+    [iter_Pcat,iter_Pnosupp,iter_Prhe,iter_Pacc,iter_Ptrain,iter_SoCfinal] = Train_batt(arr_Pref(i),eff,arr_Vcat(i),arr_SOC_init(i)); % add new SoC
+    arr_Pcat(i) = iter_Pcat;
+    arr_Pnosupp(i) = iter_Pnosupp;
+    arr_Prhe(i) = iter_Prhe;
+    arr_Pacc(i) = iter_Pacc;
+    arr_Ptrain(i) = iter_Ptrain;
+    arr_SoC_final(i) = iter_SoCfinal;
+end
+results = table(arr_Pref, arr_Vcat,arr_SOC_init, arr_Pcat, arr_Prhe, arr_Pnosupp, arr_Pacc, arr_Ptrain, arr_SoC_final);
+results.Properties.VariableNames = ["Pref", "Vcat", "SOCinit", "Pcat", "Prhe","Pnosupp", "Pacc","Ptrain", "SOCfinal"];
+writetable(results,'trainWithBattery.csv')
 %% FUNCTIONS
 
 % Simple Train
