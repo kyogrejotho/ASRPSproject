@@ -4,14 +4,14 @@ clear all;
 
 %% Put test case here
 eff = 0.9; % efficiency of onborad converter/rectifier/inverter
-[Pcat51,Pnosupp51,Prhe51,Pacc51] = Train_offboard(650,0.9,745,0.5); % Testing only, for charging
+[Pcat51, Pnosupp51, Prhe51, Pacc51] = Train_offboard(650, 0.9, 745, 0.5); % Testing only, for charging
 
 %% FUNCTIONS
 
 % Simple Train
 function [Pcat] = Train_simple_fxn(Pref, eff, Vcat)
     Pcat = Pref/eff % power from/to catenary
-    Icat = Pcat/Vcat % current from/to catenary
+    Icat = Pcat*1e3/Vcat % current from/to catenary
 end
 
 % Train /w squeeze control
@@ -26,7 +26,7 @@ function [Pcat,Pnosupp,Prhe] =  Train_protection(Pref, eff, Vcat)
 
     if Pref >= 0
         Pcat = k*Pref/eff; % k is the slope of the OCP line
-        Pnosupp = Pref-(Pcat*eff);
+        Pnosupp = Pref - (Pcat*eff);
         Prhe = 0; % no Prhe if OCP
     elseif Pref < 0 
         Pcat = k*Pref*eff; % k is the slope of the OVP line
@@ -42,10 +42,10 @@ function [Pcat, Pnosupp, Prhe, Pacc, Ptrain, SoCfinal] = Train_batt(Pref, eff, V
     SoC3 = 0.9;     % min SoC for Pacc onboard charging protection
     SoC4 = 0.95;    % max SoC for Pacc onboard charging protection
 
-    v1 = 550; % min Vcat for overcurrent protection (ocpMin)
-    v2 = 600; % max Vcat for overcurrent protection (ocpMax) 
-    v3 = 850; % min Vcat for overvoltage protection (ovpMin)
-    v4 = 900; % max Vcat for overvoltage protection (ovpMax)
+    v1 = 550;       % min Vcat for overcurrent protection (ocpMin)
+    v2 = 600;       % max Vcat for overcurrent protection (ocpMax) 
+    v3 = 850;       % min Vcat for overvoltage protection (ovpMin)
+    v4 = 900;       % max Vcat for overvoltage protection (ovpMax)
 
     dt = 1/3600; % [s]
     
