@@ -1,3 +1,8 @@
+---- ASRPS ----
+JES DAVID BUARON RAMIREZ
+PATTARACHAI ROCHANANAK
+NICHOLAS PUTRA RIHANDOKO
+-----------------------------------------------------------
 models of the train is in the "Train_simple.m" file
 it has 3 train models:
     1) simple (Train_simple_fxn)
