@@ -1,7 +1,7 @@
 ---- ASRPS ----
-JES DAVID ADRIEL RAMIREZ BUARON
-PATTARACHAI ROCHANANAK
-NICHOLAS PUTRA RIHANDOKO
+JES DAVID ADRIEL RAMIREZ BUARON - UO299578
+PATTARACHAI ROCHANANAK - UO304836
+NICHOLAS PUTRA RIHANDOKO - UO299590
 -----------------------------------------------------------
 models of the train is in the "Train_simple.m" file
 it has 3 train models:
